@@ -1,54 +1,83 @@
-import os
 import discord
 from discord.ext import commands
-import requests
 
-TOKEN = os.getenv("DISCORD_TOKEN")
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
-
-intents = discord.Intents.default()
-intents.members = True
-bot = commands.Bot(command_prefix="!", intents=intents)
-
-# Храним варны в памяти (для полноценного хранения лучше использовать БД)
+# Словарь для хранения предупреждений (можно заменить на базу данных)
 warnings = {}
 
+# Указываем префикс команды и intents
+intents = discord.Intents.default()
+intents.message_content = True
+intents.members = True  # Для работы с ролями и участниками
+
+bot = commands.Bot(command_prefix="~", intents=intents)
+    
+# Обработчик события запуска бота
 @bot.event
 async def on_ready():
-    print(f"Бот {bot.user} запущен!")
+    print(f"Бот {bot.user} успешно запущен!")
 
-@bot.command()
-async def warn(ctx, member: discord.Member, *, reason="Без причины"):
-    """Выдаёт варн и снимает указанную роль"""
+# Команда "угроза"
+@bot.command(name="угроза")
+@commands.has_permissions(manage_roles=True)  # Только пользователи с правами управления ролями могут использовать команду
+async def warn(ctx, member: discord.Member, *, reason: str):
+    # Проверяем, существует ли роль, которую нужно снять
+    role_name = "тестовая роль"  # Замените на название роли, которую хотите снять
+    role = discord.utils.get(ctx.guild.roles, name=role_name)
+
+    if not role:
+        await ctx.send(f"Роль '{role_name}' не найдена на сервере.")
+        return
+
+    try:
+        # Снимаем роль
+        if role in member.roles:
+            await member.remove_roles(role)
+            await ctx.send(f"Роль '{role_name}' успешно снята с пользователя {member.display_name}.")
+        else:
+            await ctx.send(f"У пользователя {member.display_name} нет роли '{role_name}'.")
+    except discord.Forbidden:
+        await ctx.send("У бота недостаточно прав для снятия роли. Проверьте права бота и иерархию ролей.")
+        return
+
+    # Добавляем предупреждение
     if member.id not in warnings:
         warnings[member.id] = []
     warnings[member.id].append(reason)
 
-    # Роль, которую нужно снять (замени на ID нужной роли)
-    role_id = 1355233773045678253  # <-- Заменить на реальный ID роли
-    role = discord.utils.get(member.guild.roles, id=role_id)
+    # Отправляем сообщение о предупреждении
+    await ctx.send(f"Пользователь {member.display_name} получил предупреждение. Причина: {reason}")
 
-    if role and role in member.roles:
-        await member.remove_roles(role)
-        await ctx.send(f"🚨 {member.mention} получил варн! Роль {role.name} снята.\nПричина: {reason}")
-    else:
-        await ctx.send(f"🚨 {member.mention} получил варн, но у него нет нужной роли.\nПричина: {reason}")
+    # Проверяем количество предупреждений
+    if len(warnings[member.id]) >= 2:
+        try:
+            await member.ban(reason="Накоплено 2 или более предупреждений.")
+            await ctx.send(f"Пользователь {member.display_name} был забанен за накопление 2 или более предупреждений.")
+        except discord.Forbidden:
+            await ctx.send("У бота недостаточно прав для бана пользователя.")
+        except Exception as e:
+            await ctx.send(f"Произошла ошибка при попытке бана: {e}")
 
-@bot.command()
-async def ask(ctx, *, question):
-    """Отправляет запрос к DeepSeek и отвечает в чат"""
-    url = "https://api.deepseek.com/v1/chat/completions"
-    headers = {"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"}
-    data = {"model": "deepseek-chat", "messages": [{"role": "user", "content": question}]}
+# Команда "списокугроз"
+@bot.command(name="списокугроз")
+async def list_all_warnings(ctx):
+    if not warnings:
+        await ctx.send("На сервере ещё не выдано ни одного предупреждения.")
+        return
 
-    response = requests.post(url, json=data, headers=headers)
-    if response.status_code == 200:
-        answer = response.json()["choices"][0]["message"]["content"]
-        await ctx.send(f"**Ответ:** {answer}")
-    else:
-        await ctx.send("Ошибка при запросе к DeepSeek 😔")
-print(f"TOKEN: {TOKEN}")
-try:
+    # Формируем список всех предупреждений
+    all_warnings = []
+    for user_id, reasons in warnings.items():
+        member = ctx.guild.get_member(user_id)
+        member_name = member.display_name if member else f"Пользователь ID:{user_id} (покинул сервер)"
+        warning_list = "\n".join([f"  - {reason}" for reason in reasons])
+        all_warnings.append(f"{member_name}:\n{warning_list}")
+
+    # Отправляем результат
+    result = "Все выданные предупреждения на сервере:\n" + "\n".join(all_warnings)
+    await ctx.send(result)
+
+    
+TOKEN = "DISCORD_TOKEN"
+# Запуск бота
+if __name__ == "__main__":
     bot.run(TOKEN)
-except Exception as e:
-    print(f"Ошибка при запуске бота: {e}")
