@@ -47,5 +47,5 @@ async def ask(ctx, *, question):
         await ctx.send(f"**Ответ:** {answer}")
     else:
         await ctx.send("Ошибка при запросе к DeepSeek 😔")
-
+print(f"TOKEN: {TOKEN}")
 bot.run(TOKEN)
