@@ -48,4 +48,7 @@ async def ask(ctx, *, question):
     else:
         await ctx.send("Ошибка при запросе к DeepSeek 😔")
 print(f"TOKEN: {TOKEN}")
-bot.run(TOKEN)
+try:
+    bot.run(TOKEN)
+except Exception as e:
+    print(f"Ошибка при запуске бота: {e}")
