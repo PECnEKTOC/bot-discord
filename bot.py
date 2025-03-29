@@ -1,47 +1,51 @@
+import os
 import discord
 from discord.ext import commands
 import requests
-import os
 
-TOKEN = os.getenv("MTM1NTQzMDAwNTg0ODY3MDIxOQ.G4Ph9r.i4UtP2lWcl_e8WwDi5g-nY_oAmsgwOzVm2A91I")  # Берём токен из переменных окружения
-DEEPSEEK_API_KEY = os.getenv("sk-66609cbf1de74688ababe6b0b97aecc3")  # Ключ от DeepSeek
+TOKEN = os.getenv("DISCORD_TOKEN")
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
 intents = discord.Intents.default()
-intents.message_content = True
-intents.guilds = True
 intents.members = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-warns = {}  # Словарь для хранения предупреждений
+# Храним варны в памяти (для полноценного хранения лучше использовать БД)
+warnings = {}
 
 @bot.event
 async def on_ready():
     print(f"Бот {bot.user} запущен!")
 
 @bot.command()
-async def ask(ctx, *, query):
-    """Команда для обращения к нейросети"""
-    response = requests.post(
-        "https://api.deepseek.com/v1/chat/completions",
-        json={"model": "deepseek-chat", "messages": [{"role": "user", "content": query}]},
-        headers={"Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
-    )
-    answer = response.json().get("choices", [{}])[0].get("message", {}).get("content", "Ошибка при получении ответа.")
-    await ctx.send(answer)
+async def warn(ctx, member: discord.Member, *, reason="Без причины"):
+    """Выдаёт варн и снимает указанную роль"""
+    if member.id not in warnings:
+        warnings[member.id] = []
+    warnings[member.id].append(reason)
 
-@bot.command()
-async def warn(ctx, member: discord.Member, *, reason="Не указана"):
-    """Команда для выдачи варна"""
-    if member.id not in warns:
-        warns[member.id] = []
-    warns[member.id].append(reason)
+    # Роль, которую нужно снять (замени на ID нужной роли)
+    role_id = 1355233773045678253  # <-- Заменить на реальный ID роли
+    role = discord.utils.get(member.guild.roles, id=role_id)
 
-    # Удаляем указанную роль (замени "RoleName" на нужную)
-    role = discord.utils.get(ctx.guild.roles, name="RoleName")
     if role and role in member.roles:
         await member.remove_roles(role)
-        await ctx.send(f"{member.mention} получил варн! Причина: {reason}. Роль {role.name} удалена.")
+        await ctx.send(f"🚨 {member.mention} получил варн! Роль {role.name} снята.\nПричина: {reason}")
     else:
-        await ctx.send(f"{member.mention} получил варн! Причина: {reason}.")
+        await ctx.send(f"🚨 {member.mention} получил варн, но у него нет нужной роли.\nПричина: {reason}")
+
+@bot.command()
+async def ask(ctx, *, question):
+    """Отправляет запрос к DeepSeek и отвечает в чат"""
+    url = "https://api.deepseek.com/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"}
+    data = {"model": "deepseek-chat", "messages": [{"role": "user", "content": question}]}
+
+    response = requests.post(url, json=data, headers=headers)
+    if response.status_code == 200:
+        answer = response.json()["choices"][0]["message"]["content"]
+        await ctx.send(f"**Ответ:** {answer}")
+    else:
+        await ctx.send("Ошибка при запросе к DeepSeek 😔")
 
 bot.run(TOKEN)
