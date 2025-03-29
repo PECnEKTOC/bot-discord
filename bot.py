@@ -3,8 +3,8 @@ from discord.ext import commands
 import requests
 import os
 
-TOKEN = os.getenv("DISCORD_TOKEN")  # Берём токен из переменных окружения
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")  # Ключ от DeepSeek
+TOKEN = os.getenv("MTM1NTQzMDAwNTg0ODY3MDIxOQ.G4Ph9r.i4UtP2lWcl_e8WwDi5g-nY_oAmsgwOzVm2A91I")  # Берём токен из переменных окружения
+DEEPSEEK_API_KEY = os.getenv("sk-66609cbf1de74688ababe6b0b97aecc3")  # Ключ от DeepSeek
 
 intents = discord.Intents.default()
 intents.message_content = True
