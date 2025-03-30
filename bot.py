@@ -63,8 +63,9 @@ async def on_message(message):
 @bot.command(name="угроза")
 @commands.has_permissions(manage_roles=True)  # Только пользователи с правами управления ролями могут использовать команду
 async def warn(ctx, member: discord.Member, *, reason: str):
+    """Выдаёт варн игроку. При достижении 2-х варнов - банит"""
     # Проверяем, существует ли роль, которую нужно снять
-    role_name = "тестовая роль"  # Замените на название роли, которую хотите снять
+    role_name = "Водитель"  # Замените на название роли, которую хотите снять
     role = discord.utils.get(ctx.guild.roles, name=role_name)
 
     if not role:
@@ -93,8 +94,8 @@ async def warn(ctx, member: discord.Member, *, reason: str):
     # Проверяем количество предупреждений
     if len(warnings[member.id]) >= 2:
         try:
-            await member.ban(reason="Накоплено 2 или более предупреждений.")
-            await ctx.send(f"Пользователь {member.display_name} был забанен за накопление 2 или более предупреждений.")
+            await member.ban(reason="Накоплено 2 предупреждения.")
+            await ctx.send(f"Пользователь {member.display_name} был забанен за накопление 2-х предупреждений.")
         except discord.Forbidden:
             await ctx.send("У бота недостаточно прав для бана пользователя.")
         except Exception as e:
@@ -104,6 +105,7 @@ async def warn(ctx, member: discord.Member, *, reason: str):
 @bot.command(name="списокугроз")
 @commands.has_any_role("Администратор", "БОСС")
 async def list_all_warnings(ctx):
+    """Выводит список всех выданных варнов"""
     if not warnings:
         await ctx.send("На сервере ещё не выдано ни одного предупреждения.")
         return
@@ -118,18 +120,6 @@ async def list_all_warnings(ctx):
     # Отправляем результат
     result = "Все выданные предупреждения на сервере:\n" + "\n".join(all_warnings)
     await ctx.send(result)
-    
-# Команда "команды"
-@bot.command(name="команды")
-@commands.has_any_role("Администратор", "БОСС")
-async def list_of_commands(ctx):
-    """Выводит список всех доступных команд бота."""
-    # Собираем список команд
-    command_list = [f"~{command.name}" for command in bot.commands]
-    commands_text = ", ".join(command_list)
-    
-    # Отправляем сообщение с командами
-    await ctx.send(f"Доступные команды: {commands_text}")
     
 # Обработка ошибок доступа
 @bot.event
