@@ -90,7 +90,14 @@ async def list_all_warnings(ctx):
     result = "Все выданные предупреждения на сервере:\n" + "\n".join(all_warnings)
     await ctx.send(result)
 
-    
+# Обработка ошибок доступа
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.MissingAnyRole):
+        await ctx.send("У вас нет прав для выполнения этой команды. Требуемые роли: 'админ' или 'босс'.")
+    else:
+        await ctx.send(f"Произошла ошибка: {error}")
+        
 TOKEN = os.getenv("DISCORD_TOKEN")
 # Запуск бота
 if __name__ == "__main__":
