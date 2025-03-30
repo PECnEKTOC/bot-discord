@@ -128,7 +128,7 @@ async def list_all_warnings(ctx):
     await ctx.send(result)
 
 @bot.command(name="удалитьварны")
-@commands.has_any_role("админ", "босс")  # Только админы и боссы могут использовать команду
+@commands.has_any_role("Администратор", "БОСС")  # Только админы и боссы могут использовать команду
 async def remove_warnings_and_update_roles(ctx, members: commands.Greedy[discord.Member]):
     """
     Удаляет предупреждения у указанных пользователей и обновляет их роли.
