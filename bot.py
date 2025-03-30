@@ -7,6 +7,17 @@ import requests
 
 app = Flask(__name__)
 
+# Список пафосных фраз для ответа на упоминание
+GREETING_PHRASES = [
+    "Я — страж порядка. Не тревожьте меня без дела.",
+    "Модерация — мой долг. Что вам угодно?",
+    "Порядок и справедливость — вот мои принципы. Чем могу помочь?",
+    "Законы сервера — моя обязанность. Какие вопросы?",
+    "Я наблюдаю за каждым вашим шагом. Зачем вы позвали меня?",
+    "Нарушители будут наказаны. Что-то случилось?",
+    "Босс, я слушаю вас. Но не злоупотребляйте моим вниманием.",
+]
+
 @app.route('/')
 def home():
     return "Бот работает!"
@@ -30,7 +41,24 @@ bot = commands.Bot(command_prefix="~", intents=intents)
 @bot.event
 async def on_ready():
     print(f"Бот {bot.user} успешно запущен!")
+    
+# Реакция на упоминание бота
+@bot.event
+@commands.has_any_role("Администратор", "БОСС")
+async def on_message(message):
+    # Игнорируем сообщения от самого бота
+    if message.author == bot.user:
+        return
 
+    # Проверяем, упоминается ли бот в сообщении
+    if bot.user.mentioned_in(message):
+        # Выбираем случайную фразу из списка
+        response = random.choice(GREETING_PHRASES)
+        await message.channel.send(response)
+
+    # Обрабатываем другие команды
+    await bot.process_commands(message)
+    
 # Команда "угроза"
 @bot.command(name="угроза")
 @commands.has_permissions(manage_roles=True)  # Только пользователи с правами управления ролями могут использовать команду
@@ -74,7 +102,7 @@ async def warn(ctx, member: discord.Member, *, reason: str):
 
 # Команда "списокугроз"
 @bot.command(name="списокугроз")
-@commands.has_any_role("админ", "босс")
+@commands.has_any_role("Администратор", "БОСС")
 async def list_all_warnings(ctx):
     if not warnings:
         await ctx.send("На сервере ещё не выдано ни одного предупреждения.")
