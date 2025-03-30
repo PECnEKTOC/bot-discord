@@ -126,7 +126,47 @@ async def list_all_warnings(ctx):
     # Отправляем результат
     result = "Все выданные предупреждения на сервере:\n" + "\n".join(all_warnings)
     await ctx.send(result)
-    
+
+@bot.command(name="удалитьварны")
+@commands.has_any_role("админ", "босс")  # Только админы и боссы могут использовать команду
+async def remove_warnings_and_update_roles(ctx, members: commands.Greedy[discord.Member]):
+    """
+    Удаляет предупреждения у указанных пользователей и обновляет их роли.
+    Пример использования: ~удалитьварны Username1 Username2
+    """
+    if not members:
+        await ctx.send("Укажите хотя бы одного пользователя.")
+        return
+
+    results = []  # Список результатов для каждого пользователя
+
+    for member in members:
+        # Удаляем предупреждение, если оно есть
+        if member.id in warnings and warnings[member.id]:
+            removed_warning = warnings[member.id].pop(0)  # Удаляем первое предупреждение
+            results.append(f"У пользователя {member.display_name} удалено предупреждение: {removed_warning}")
+        else:
+            results.append(f"У пользователя {member.display_name} нет предупреждений.")
+
+        # Проверяем роли
+        водитель_role = discord.utils.get(ctx.guild.roles, name="Водитель")
+        новичок_role = discord.utils.get(ctx.guild.roles, name="Новичок")
+
+        if водитель_role and новичок_role:
+            if водитель_role not in member.roles and новичок_role in member.roles:
+                try:
+                    await member.add_roles(водитель_role)
+                    await member.remove_roles(новичок_role)
+                    results.append(f"Пользователю {member.display_name} выдана роль 'Водитель' и снята роль 'Новичок'.")
+                except discord.Forbidden:
+                    results.append(f"У бота недостаточно прав для изменения ролей у {member.display_name}.")
+                except Exception as e:
+                    results.append(f"Произошла ошибка при изменении ролей у {member.display_name}: {e}")
+        else:
+            results.append(f"Роли 'Водитель' или 'Новичок' не найдены на сервере.")
+
+    # Отправляем результаты
+    await ctx.send("\n".join(results))
 # Обработка ошибок доступа
 @bot.event
 async def on_command_error(ctx, error):
