@@ -80,4 +80,5 @@ async def list_all_warnings(ctx):
 TOKEN = os.getenv("DISCORD_TOKEN")
 # Запуск бота
 if __name__ == "__main__":
+    print(f"Пробуем")
     bot.run(TOKEN)
