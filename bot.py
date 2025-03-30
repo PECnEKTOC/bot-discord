@@ -77,7 +77,7 @@ async def list_all_warnings(ctx):
     await ctx.send(result)
 
     
-TOKEN = os.getenv("TOKEN")
+TOKEN = os.getenv("DISCORD_TOKEN")
 # Запуск бота
 if __name__ == "__main__":
     bot.run(TOKEN)
