@@ -1,6 +1,19 @@
 import discord
 from discord.ext import commands
 import os
+from flask import Flask
+from threading import Thread
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Бот работает!"
+
+def run():
+    app.run(host="0.0.0.0", port=8080)
+
+Thread(target=run, daemon=True).start()
 
 # Словарь для хранения предупреждений (можно заменить на базу данных)
 warnings = {}
@@ -81,5 +94,4 @@ async def list_all_warnings(ctx):
 TOKEN = os.getenv("DISCORD_TOKEN")
 # Запуск бота
 if __name__ == "__main__":
-    print(f"Пробуем")
     bot.run(TOKEN)
