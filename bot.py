@@ -65,20 +65,24 @@ async def on_message(message):
 async def warn(ctx, member: discord.Member, *, reason: str):
     """Выдаёт варн игроку. При достижении 2-х варнов - банит"""
     # Проверяем, существует ли роль, которую нужно снять
-    role_name = "Водитель"  # Замените на название роли, которую хотите снять
-    role = discord.utils.get(ctx.guild.roles, name=role_name)
+    role_name1 = "Водитель"  # Замените на название роли, которую хотите снять
+    role1 = discord.utils.get(ctx.guild.roles, name=role_name)
+    role_name2 = "Новичок"  # Замените на название роли, которую хотите снять
+    role2 = discord.utils.get(ctx.guild.roles, name=role_name)
 
     if not role:
-        await ctx.send(f"Роль '{role_name}' не найдена на сервере.")
+        await ctx.send(f"Роль '{role_name1}' не найдена на сервере.")
         return
 
     try:
         # Снимаем роль
-        if role in member.roles:
-            await member.remove_roles(role)
-            await ctx.send(f"Роль '{role_name}' успешно снята с пользователя {member.display_name}.")
+        if role1 in member.roles:
+            await member.remove_roles(role1)
+            await ctx.send(f"Роль '{role_name1}' успешно снята с пользователя {member.display_name}.")
+            await member.add_roles(role2)
+            await ctx.send(f"Роль '{role_name2}' успешно добавлена пользователю {member.display_name}.")
         else:
-            await ctx.send(f"У пользователя {member.display_name} нет роли '{role_name}'.")
+            await ctx.send(f"У пользователя {member.display_name} нет роли '{role_name1}'.")
     except discord.Forbidden:
         await ctx.send("У бота недостаточно прав для снятия роли. Проверьте права бота и иерархию ролей.")
         return
