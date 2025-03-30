@@ -73,11 +73,11 @@ async def warn(ctx, member: discord.Member, *, reason: str):
 
 # Команда "списокугроз"
 @bot.command(name="списокугроз")
+@commands.has_any_role("админ", "босс")
 async def list_all_warnings(ctx):
     if not warnings:
         await ctx.send("На сервере ещё не выдано ни одного предупреждения.")
         return
-
     # Формируем список всех предупреждений
     all_warnings = []
     for user_id, reasons in warnings.items():
