@@ -70,10 +70,12 @@ async def warn(ctx, member: discord.Member, *, reason: str):
     role_name2 = "Новичок"  # Замените на название роли, которую хотите снять
     role2 = discord.utils.get(ctx.guild.roles, name=role_name2)
 
-    if not role:
+    if not role1:
         await ctx.send(f"Роль '{role_name1}' не найдена на сервере.")
         return
-
+    if not role2:
+        await ctx.send(f"Роль '{role_name2}' не найдена на сервере.")
+        return
     try:
         # Снимаем роль
         if role1 in member.roles:
