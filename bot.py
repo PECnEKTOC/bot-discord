@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+import os
 
 # Словарь для хранения предупреждений (можно заменить на базу данных)
 warnings = {}
