@@ -66,9 +66,9 @@ async def warn(ctx, member: discord.Member, *, reason: str):
     """Выдаёт варн игроку. При достижении 2-х варнов - банит"""
     # Проверяем, существует ли роль, которую нужно снять
     role_name1 = "Водитель"  # Замените на название роли, которую хотите снять
-    role1 = discord.utils.get(ctx.guild.roles, name=role_name)
+    role1 = discord.utils.get(ctx.guild.roles, name=role_name1)
     role_name2 = "Новичок"  # Замените на название роли, которую хотите снять
-    role2 = discord.utils.get(ctx.guild.roles, name=role_name)
+    role2 = discord.utils.get(ctx.guild.roles, name=role_name2)
 
     if not role:
         await ctx.send(f"Роль '{role_name1}' не найдена на сервере.")
