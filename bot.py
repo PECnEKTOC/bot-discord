@@ -3,7 +3,7 @@ from discord.ext import commands
 import os
 from flask import Flask
 from threading import Thread
-import requests
+import random
 
 app = Flask(__name__)
 
