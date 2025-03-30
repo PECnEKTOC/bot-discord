@@ -118,7 +118,19 @@ async def list_all_warnings(ctx):
     # Отправляем результат
     result = "Все выданные предупреждения на сервере:\n" + "\n".join(all_warnings)
     await ctx.send(result)
-
+    
+# Команда "команды"
+@bot.command(name="команды")
+@commands.has_any_role("Администратор", "БОСС")
+async def list_of_commands(ctx):
+    """Выводит список всех доступных команд бота."""
+    # Собираем список команд
+    command_list = [f"~{command.name}" for command in bot.commands]
+    commands_text = ", ".join(command_list)
+    
+    # Отправляем сообщение с командами
+    await ctx.send(f"Доступные команды: {commands_text}")
+    
 # Обработка ошибок доступа
 @bot.event
 async def on_command_error(ctx, error):
